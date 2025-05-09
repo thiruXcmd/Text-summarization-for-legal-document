@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Document Summarizer</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a0ca3;
+            --gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+        }
+    
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+    
+        body {
+            background: var(--gray-100);
+            color: var(--gray-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+    
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+    
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            transform: translateY(-10px);
+            animation: slideDown 0.4s ease-out 0.2s forwards;
+        }
+    
+        h1 {
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.025em;
+        }
+    
+        .description {
+            color: var(--gray-700);
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+            line-height: 1.75;
+        }
+    
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+        }
+    
+        .input-section, .output-section {
+            flex: 1;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 2rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+    
+        .input-section:hover, .output-section:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(67, 97, 238, 0.1);
+        }
+    
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+    
+        h2 {
+            font-size: 1.5rem;
+            color: var(--gray-800);
+            font-weight: 700;
+            position: relative;
+        }
+    
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--gradient);
+            border-radius: 2px;
+        }
+    
+        textarea {
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-300);
+            background: var(--gray-100);
+        }
+    
+        textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+    
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+    
+        button {
+            transition: all 0.2s ease-out;
+            transform-origin: center;
+            letter-spacing: -0.015em;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+        }
+    
+        .primary-button {
+            background: var(--gradient);
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.15);
+        }
+    
+        .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.25);
+        }
+    
+        .secondary-button {
+            border: 1px solid var(--gray-300);
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    
+        .secondary-button:hover {
+            background: var(--gray-100);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+    
+        #output {
+            background: var(--gray-100);
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+    
+        .options-section {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-200);
+        }
+    
+        .options-grid {
+            gap: 1.5rem;
+        }
+    
+        .option-group {
+            position: relative;
+            padding: 1.5rem;
+            background: var(--gray-100);
+            border-radius: 0.75rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+    
+        .option-group:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+        }
+    
+        select, input[type="range"] {
+            background: white;
+            border: 1px solid var(--gray-300);
+            transition: all 0.3s ease;
+        }
+    
+        select:focus, input[type="range"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+    
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            background: var(--gradient);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+    
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+    
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border-width: 3px;
+            animation: spin 0.8s linear infinite;
+        }
+    
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    
+        .footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--gray-200);
+            animation: fadeIn 0.6s ease-out 0.4s backwards;
+        }
+    
+        .word-count {
+            font-weight: 500;
+            color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+        }
+    
+        .summary-section {
+            padding: 1.5rem;
+            background: var(--gray-100);
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Legal Document Summarizer</h1>
+            <p class="description">Paste your legal document text below to generate a concise summary highlighting key points, obligations, and important clauses.</p>
+        </header>
+        
+        <div class="options-section">
+            <h2>Summary Options</h2>
+            <div class="options-grid">
+                <div class="option-group">
+                    <label class="option-label" for="summary-type">Summary Type</label>
+                    <select id="summary-type">
+                        <option value="comprehensive">Comprehensive</option>
+                        <option value="brief">Brief</option>
+                        <option value="key-points">Key Points Only</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label class="option-label" for="focus-area">Focus Area</label>
+                    <select id="focus-area">
+                        <option value="general">General</option>
+                        <option value="obligations">Obligations & Requirements</option>
+                        <option value="risks">Risks & Liabilities</option>
+                        <option value="deadlines">Deadlines & Timelines</option>
+                        <option value="definitions">Key Definitions</option>
+                    </select>
+                </div>
+                <div class="option-group">
+                    <label class="option-label" for="summary-length">Summary Length</label>
+                    <input type="range" id="summary-length" min="1" max="5" value="3">
+                    <div class="range-value">Medium (3)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="section-header">
+                    <h2>Input Document</h2>
+                    <span class="word-count" id="input-word-count">0 words</span>
+                </div>
+                <textarea id="input-text" placeholder="Paste your legal document text here..."></textarea>
+                <div class="button-group">
+                    <button class="primary-button" id="summarize-btn">Generate Summary</button>
+                    <button class="secondary-button" id="clear-btn">Clear</button>
+                    <button class="secondary-button" id="sample-btn">Load Sample</button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="section-header">
+                    <h2>Document Summary</h2>
+                    <span class="word-count" id="output-word-count">0 words</span>
+                </div>
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    Generating summary...
+                </div>
+                <div id="output"></div>
+                <div class="button-group">
+                    <button class="secondary-button" id="copy-btn">Copy Summary</button>
+                    <button class="secondary-button" id="download-btn">Download</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>This tool provides an AI-generated summary of legal documents. Always consult with a qualified legal professional before making decisions based on these summaries.</p>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const inputText = document.getElementById('input-text');
+        const outputEl = document.getElementById('output');
+        const inputWordCount = document.getElementById('input-word-count');
+        const outputWordCount = document.getElementById('output-word-count');
+        const summarizeBtn = document.getElementById('summarize-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const sampleBtn = document.getElementById('sample-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const loadingEl = document.getElementById('loading');
+        const summaryType = document.getElementById('summary-type');
+        const focusArea = document.getElementById('focus-area');
+        const summaryLength = document.getElementById('summary-length');
+        const rangeValue = document.querySelector('.range-value');
+        
+        // Sample legal text
+        const sampleText = `CONFIDENTIALITY AND NON-DISCLOSURE AGREEMENT
+
+THIS CONFIDENTIALITY AND NON-DISCLOSURE AGREEMENT (the "Agreement") is made and entered into as of [Date] (the "Effective Date"), by and between [Company Name], a corporation organized and existing under the laws of [State/Country], with its principal place of business at [Address] ("Disclosing Party"), and [Recipient Name], a corporation organized and existing under the laws of [State/Country], with its principal place of business at [Address] ("Receiving Party").
+
+WHEREAS, Disclosing Party possesses certain ideas and information relating to [Subject Matter] that is confidential and proprietary to Disclosing Party (hereinafter referred to as "Confidential Information"); and
+
+WHEREAS, Receiving Party is willing to receive disclosure of the Confidential Information pursuant to the terms of this Agreement for the purpose of [Purpose of Disclosure];
+
+NOW THEREFORE, in consideration for the mutual undertakings of the Disclosing Party and the Receiving Party under this Agreement, the parties agree as follows:
+
+1. DEFINITION OF CONFIDENTIAL INFORMATION
+"Confidential Information" shall include, but not be limited to, documents, business plans, financial statements, customer lists, project proposals, drawings, specifications, models, source code, object code, documentation, diagrams, flow charts, research, development, processes, procedures, know-how, manufacturing, development or marketing techniques and materials, development or marketing timetables, strategies and development plans, personnel names and other information related to personnel, pricing policies and financial information, including information regarding suppliers, customers and potential business opportunities, whether disclosed directly or indirectly, in writing, orally, electronically, or by any other means.
+
+2. EXCLUSIONS FROM CONFIDENTIAL INFORMATION
+The obligation of confidentiality with respect to Confidential Information will not apply to any information:
+a) If the information is or becomes publicly known through no wrongful act of Receiving Party;
+b) If the information is rightfully received by Receiving Party from a third party without restriction and without breach of this Agreement;
+c) If the information is approved for release upon a prior written consent of Disclosing Party;
+d) If the information is disclosed pursuant to the lawful requirement of a court or governmental agency or where required by operation of law.
+
+3. OBLIGATIONS OF RECEIVING PARTY
+Receiving Party agrees that it shall:
+a) Use the Confidential Information only for the purpose of [Purpose of Disclosure];
+b) Restrict disclosure of the Confidential Information solely to those employees, agents or representatives with a need to know and not disclose it to any other person or entity without the prior written consent of Disclosing Party;
+c) Advise each of its employees, agents or representatives who receives Confidential Information of their obligations with respect to the Confidential Information; and
+d) Copy the Confidential Information only as necessary for those employees, agents or representatives who need it for the purpose described above, and ensure that all confidentiality notices are reproduced in full on such copies.
+
+4. TERM AND TERMINATION
+The obligations of Receiving Party herein shall be effective from the date Confidential Information is provided by Disclosing Party until [Term of Agreement] years after the later of (a) the date on which Disclosing Party delivers the Confidential Information to Receiving Party, or (b) the date on which this Agreement is terminated in writing by either party. Further, the obligation not to disclose shall not be affected by bankruptcy, receivership, assignment, attachment or seizure procedures, whether initiated by or against Receiving Party, nor by the rejection of any agreement between Disclosing Party and Receiving Party, by a trustee of Receiving Party in bankruptcy, or by the Receiving Party as a debtor-in-possession or the equivalent of any of the foregoing under local law.
+
+5. NON-DISCLOSURE OF NEGOTIATIONS
+Neither party will disclose to any third party the fact that the parties are discussing the subject matter described in this Agreement, without the prior written consent of the other party.
+
+6. NO LICENSE
+Nothing contained herein shall be construed as granting or conferring any rights by license or otherwise in any Confidential Information, except for the use of such Confidential Information as expressly provided in this Agreement.
+
+7. NO PUBLICITY
+Neither party shall, without prior written consent of the other party, disclose to any other person the fact that Confidential Information has been and/or may be disclosed under this Agreement, that discussions or negotiations are taking place between the parties, or any of the terms, conditions, status or other facts with respect thereto, except as required by law and then only with prior notice to the other party.
+
+8. RETURN OF CONFIDENTIAL INFORMATION
+Upon written request of Disclosing Party, the Receiving Party shall promptly return to Disclosing Party all written materials containing or reflecting any Confidential Information and all copies thereof. The Receiving Party will destroy all documents, memoranda, notes, and other writings or electronic records prepared by it, that contain Confidential Information and shall provide a written certification of destruction to Disclosing Party.
+
+9. NO WARRANTY
+The Confidential Information is provided "AS IS" and Disclosing Party makes no warranty, express, implied, or otherwise, regarding its accuracy, completeness or performance.
+
+10. REMEDIES
+Both parties acknowledge that the Confidential Information to be disclosed hereunder is of a unique and valuable character, and that the unauthorized dissemination of the Confidential Information would destroy or diminish the value of such information. The damages to Disclosing Party that would result from the unauthorized dissemination of the Confidential Information would be impossible to calculate. Therefore, both parties hereby agree that the Disclosing Party shall be entitled to injunctive relief preventing the dissemination of any Confidential Information in violation of the terms hereof. Such injunctive relief shall be in addition to any other remedies available hereunder, whether at law or in equity. Disclosing Party shall be entitled to recover its costs and fees, including reasonable attorneys' fees, incurred in obtaining any such relief. Further, in the event of litigation relating to this Agreement, the prevailing party shall be entitled to recover its reasonable attorney's fees and expenses.
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first above written.
+
+[COMPANY NAME]
+By: ______________________
+Name: ___________________
+Title: ____________________
+
+[RECIPIENT NAME]
+By: ______________________
+Name: ___________________
+Title: ____________________`;
+
+        // Update word count
+        function updateWordCount(text, element) {
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            element.textContent = `${words} words`;
+        }
+
+        // Listen for input changes
+        inputText.addEventListener('input', () => {
+            updateWordCount(inputText.value, inputWordCount);
+        });
+
+        // Update range value display
+        summaryLength.addEventListener('input', () => {
+            const lengthMap = {
+                1: 'Very Brief (1)',
+                2: 'Brief (2)',
+                3: 'Medium (3)',
+                4: 'Detailed (4)',
+                5: 'Comprehensive (5)'
+            };
+            rangeValue.textContent = lengthMap[summaryLength.value];
+        });
+
+        // Clear button functionality
+        clearBtn.addEventListener('click', () => {
+            inputText.value = '';
+            outputEl.textContent = '';
+            updateWordCount('', inputWordCount);
+            updateWordCount('', outputWordCount);
+        });
+
+        // Sample button functionality
+        sampleBtn.addEventListener('click', () => {
+            inputText.value = sampleText;
+            updateWordCount(inputText.value, inputWordCount);
+        });
+
+        // Copy button functionality
+        copyBtn.addEventListener('click', () => {
+            if (outputEl.textContent) {
+                navigator.clipboard.writeText(outputEl.textContent)
+                    .then(() => {
+                        const originalText = copyBtn.textContent;
+                        copyBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyBtn.textContent = originalText;
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                    });
+            }
+        });
+
+        // Download button functionality
+        downloadBtn.addEventListener('click', () => {
+            if (outputEl.textContent) {
+                const blob = new Blob([outputEl.textContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'legal-document-summary.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // Summarize functionality
+        summarizeBtn.addEventListener('click', () => {
+            const text = inputText.value.trim();
+            if (!text) {
+                alert('Please enter some text to summarize.');
+                return;
+            }
+
+            // Show loading indicator
+            loadingEl.style.display = 'block';
+            outputEl.textContent = '';
+
+            // Simulate API call with setTimeout (in a real app, this would be an actual API call)
+            setTimeout(() => {
+                const summary = generateSummary(text);
+                outputEl.innerHTML = summary;
+                updateWordCount(outputEl.textContent, outputWordCount);
+                loadingEl.style.display = 'none';
+            }, 1500);
+        });
+
+        // Generate summary (this would be replaced with an actual API call in a production app)
+        function generateSummary(text) {
+            const type = summaryType.value;
+            const focus = focusArea.value;
+            const length = parseInt(summaryLength.value);
+            
+            // In a real application, this would call an API to process the text
+            // This is just a mock implementation to demonstrate the UI functionality
+            
+            // Identify document type
+            let documentType = "Confidentiality Agreement";
+            if (text.toLowerCase().includes("employment")) {
+                documentType = "Employment Agreement";
+            } else if (text.toLowerCase().includes("lease")) {
+                documentType = "Lease Agreement";
+            } else if (text.toLowerCase().includes("purchase")) {
+                documentType = "Purchase Agreement";
+            }
+            
+            // Extract parties
+            let parties = [];
+            const partyMatch = text.match(/between\s+([^,]+),?\s+(?:a\s+[^,]+,\s+)?(?:and|&)\s+([^,]+)/i);
+            if (partyMatch && partyMatch.length >= 3) {
+                parties = [partyMatch[1].trim(), partyMatch[2].trim()];
+            } else {
+                // Fallback extraction
+                const lines = text.split('\n');
+                for (const line of lines) {
+                    if (line.includes("Party") || line.includes("PARTY")) {
+                        const partyNames = line.match(/[A-Z][a-zA-Z\s]+(?:Inc\.|LLC|Ltd\.|Corporation|Corp\.|Company)/g);
+                        if (partyNames) {
+                            parties = parties.concat(partyNames);
+                        }
+                    }
+                }
+            }
+            
+            // Extract key dates
+            let effectiveDate = "Not specified";
+            const dateMatch = text.match(/(?:dated|effective|as of)(?:\s+the)?\s+([A-Za-z]+\s+\d{1,2},\s+\d{4}|\d{1,2}\s+[A-Za-z]+\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2})/i);
+            if (dateMatch && dateMatch.length >= 2) {
+                effectiveDate = dateMatch[1];
+            }
+            
+            // Extract term length
+            let termLength = "Not specified";
+            const termMatch = text.match(/(?:term|duration|period) (?:of|is|shall be) (?:for )?(\d+|one|two|three|four|five|six|seven|eight|nine|ten) (?:years|months|days)/i);
+            if (termMatch && termMatch.length >= 2) {
+                termLength = termMatch[1];
+            }
+            
+            // Extract key obligations
+            let obligations = [];
+            if (text.toLowerCase().includes("shall")) {
+                const paragraphs = text.split('\n\n');
+                for (const paragraph of paragraphs) {
+                    if (paragraph.toLowerCase().includes("shall") && paragraph.length < 500) {
+                        // Look for numbered obligations
+                        if (/^\d+\./.test(paragraph.trim())) {
+                            obligations.push(paragraph.trim());
+                        }
+                    }
+                }
+                
+                // Limit based on summary length
+                obligations = obligations.slice(0, Math.min(length * 2, obligations.length));
+            }
+            
+            // Generate summary HTML
+            let summaryHTML = `<div class="summary-section">
+                <h3>Document Overview</h3>
+                <p><strong>Document Type:</strong> ${documentType}</p>
+                <p><strong>Parties Involved:</strong> ${parties.length ? parties.join(", ") : "Not clearly specified"}</p>
+                <p><strong>Effective Date:</strong> ${effectiveDate}</p>
+                <p><strong>Term Length:</strong> ${termLength}</p>
+            </div>`;
+            
+            // Add key provisions based on focus area and length
+            if (focus === "general" || focus === "obligations") {
+                summaryHTML += `<div class="summary-section">
+                    <h3>Key Obligations</h3>
+                    ${obligations.length ? 
+                        `<ul>${obligations.map(o => `<li>${o}</li>`).join('')}</ul>` : 
+                        "<p>No specific obligations clearly identified in the text format provided.</p>"}
+                </div>`;
+            }
+            
+            // Add risks section
+            if (focus === "general" || focus === "risks") {
+                summaryHTML += `<div class="summary-section">
+                    <h3>Risks & Liabilities</h3>
+                    <p>The document contains provisions relating to confidentiality obligations, with potential legal remedies including injunctive relief and recovery of attorney's fees for unauthorized disclosure.</p>
+                </div>`;
+            }
+            
+            // Condensed summary for brief option
+            if (type === "brief") {
+                summaryHTML = `<div class="summary-section">
+                    <p>This appears to be a ${documentType.toLowerCase()} between ${parties.length ? parties.join(" and ") : "the parties"}, effective ${effectiveDate}. ${
+                    focus === "general" || focus === "obligations" ? 
+                        "The agreement outlines confidentiality obligations with respect to disclosed information." : ""
+                    } ${
+                    focus === "general" || focus === "risks" ? 
+                        "Violations may result in legal remedies including injunctive relief." : ""
+                    }</p>
+                </div>`;
+            }
+            
+            // Key points only
+            if (type === "key-points") {
+                summaryHTML = `<div class="summary-section">
+                    <ul>
+                        <li><strong>Document:</strong> ${documentType}</li>
+                        <li><strong>Parties:</strong> ${parties.length ? parties.join(", ") : "Not clearly specified"}</li>
+                        <li><strong>Date:</strong> ${effectiveDate}</li>
+                        ${focus === "general" || focus === "obligations" ? 
+                            `<li><strong>Key Obligation:</strong> Maintain confidentiality of disclosed information</li>` : ""}
+                        ${focus === "general" || focus === "risks" ? 
+                            `<li><strong>Risk:</strong> Legal action for unauthorized disclosure</li>` : ""}
+                    </ul>
+                </div>`;
+            }
+            
+            return summaryHTML;
+        }
+        
+        // Initialize word counters
+        updateWordCount(inputText.value, inputWordCount);
+        updateWordCount(outputEl.textContent, outputWordCount);
+    </script>
+</body>
+</html>
